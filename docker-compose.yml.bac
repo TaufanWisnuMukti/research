@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  proxy:
+    image: nginx:latest
+    container_name: proxy
+    volumes:
+      - ./conf/nginx:/etc/nginx
+    ports:
+      - "80:80"
+    networks:
+      vnet-app:
+        ipv4_address: 10.0.1.10
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mypassword
+    volumes:
+      - db:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      vnet-app:
+        ipv4_address: 10.0.1.20
+
+  app1:
+    image: wordpress:latest
+    container_name: app1
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_USER: app1
+      WORDPRESS_DB_PASSWORD: passapp1
+      WORDPRESS_DB_NAME: app1
+    volumes:
+      - ./html/app1:/var/www/html
+    ports:
+      - "8080:80"
+    networks:
+      vnet-app:
+        ipv4_address: 10.0.1.101
+ 
+volumes:
+  db:
+networks:
+  vnet-app:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.1.0/24
+          gateway: 10.0.1.1
